@@ -1,0 +1,28 @@
+#!/bin/bash
+warningZone=5
+previousValue=0
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
+
+for (( ; ; ))
+do
+	deliveriesBeforeYou="$(curl -s http://yodel.co.uk/tracking/$1 | grep -A 1 'DELIVERIES BEFORE YOURS:' | grep -oE '>([0-9]+)<' | head -1 | grep -oE '[0-9]+')"
+	if [ "$previousValue" -lt "$deliveriesBeforeYou" ]
+	then
+		previousValue=deliveriesBeforeYou
+
+		if [ "$deliveriesBeforeYou" -lt "$warningZone" ]
+		then
+			echo -ne '\007'
+		 	printf "LISTEN OUT! There are only ${RED}${deliveriesBeforeYou}${NC} left before yours\n"
+		 	notify-send -u critical "Delivery Update" "Only $deliveriesBeforeYou left"		
+		else
+			printf "There are ${GREEN}${deliveriesBeforeYou}${NC} deliveries before you\n"
+		 	notify-send "Delivery Update" "$deliveriesBeforeYou deliveries left"
+		fi
+	else
+		echo "No change"
+	fi
+	sleep 1m
+done

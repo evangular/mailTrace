@@ -1,0 +1,18 @@
+#!/bin/bash
+previousStatus=0
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
+
+for (( ; ; ))
+do
+	deliveryStatus="$(curl -s http://shipment.co/tracking/1450/$1 | grep 'tracking-stage__icon--active' | grep -oE 'id="([a-zA-Z]+)"' | grep -oE '[a-zA-Z]+' | tail -1)"
+	if [ "$previousStatus" != "$deliveryStatus" ]
+	then
+		previousStatus=deliveryStatus
+	 	notify-send "Delivery Update" "#$1 $deliveryStatus"
+	else
+		echo "No change"
+	fi
+	sleep 1m
+done
